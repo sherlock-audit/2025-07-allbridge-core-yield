@@ -8,6 +8,8 @@ import {TestPoolForRewards} from "./TestPoolForRewards.sol";
 contract PoolWithFakeWithdraw {
     uint8 public decimals = 3;
 
+    uint public canDeposit = 1;
+
     ERC20 public token;
     // solhint-disable-next-line no-empty-blocks
     constructor(ERC20 token_) {

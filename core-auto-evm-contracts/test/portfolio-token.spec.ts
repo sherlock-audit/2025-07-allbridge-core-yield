@@ -439,7 +439,8 @@ describe("PortfolioToken contract", function () {
       await portfolioToken.unbalancePool(1, 1500);
       const expectedReceiveAmount = 499.5;
       await portfolioToken.assetEstimatedAmountOnDeposit(1000, expectedReceiveAmount, 1);
-      await portfolioToken.deposit(alice, 1000);
+      await expect(portfolioToken.depositOnePool(alice, 1000, 1, expectedReceiveAmount + 0.001)).revertedWith('Slippage');
+      await portfolioToken.depositOnePool(alice, 1000, 1, expectedReceiveAmount);
       await portfolioToken.checkState(1000 + expectedReceiveAmount, 0, [1000 + expectedReceiveAmount]);
 
       await portfolioToken.assertedSubWithdraw(alice, 100, 1);
@@ -451,7 +452,8 @@ describe("PortfolioToken contract", function () {
       await portfolioToken.unbalancePool(1, -1500);
       const expectedReceiveAmount = 499.5;
       await portfolioToken.assetEstimatedAmountOnDeposit(1000, expectedReceiveAmount, 1);
-      await portfolioToken.deposit(alice, 1000);
+      await expect(portfolioToken.depositOnePool(alice, 1000, 1, expectedReceiveAmount + 0.001)).revertedWith('Slippage');
+      await portfolioToken.depositOnePool(alice, 1000, 1, expectedReceiveAmount);
       await portfolioToken.checkState(1000 + expectedReceiveAmount, 0, [Big(1000).add(expectedReceiveAmount).toFixed()]);
 
       await portfolioToken.assertedSubWithdraw(alice, 100, 1);
@@ -587,6 +589,19 @@ describe("PortfolioToken contract", function () {
       await portfolioToken.assertPendingRewards(1, 0);
       await portfolioToken.assertTokenBalance(token, pool, 3);
       await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0);
+    })
+
+    it('Slippage', async () => {
+      const depositAmount = 1000;
+      const minAmount = 995;
+      // receive the same amount on the balanced pool
+      await portfolioToken.depositOnePool(alice, depositAmount, 1, depositAmount);
+      // receive with a little slippage on a slightly disbalanced pool
+      await portfolioToken.unbalancePool(1, 10);
+      await portfolioToken.depositOnePool(alice, depositAmount, 1, minAmount);
+      // exception on the disbalanced pool
+      await portfolioToken.unbalancePool(1, 1000);
+      await expect(portfolioToken.depositOnePool(alice, depositAmount, 1, minAmount)).revertedWith('Slippage');
     })
 
     it('Unbalanced pool', async () => {
@@ -871,6 +886,56 @@ describe("PortfolioToken contract", function () {
     await portfolioToken.deposit(bob, 1, 2);
     await portfolioToken.checkState(1, 5, [2.5, 3.5]);
   });
+
+  it("Transfer after adding rewards", async function () {
+    await portfolioToken.deposit(alice, 1, 1); // Alice 2; Bob 0; Pool1 1; Pool2 1;
+    await portfolioToken.deposit(bob, 1, 1);
+    await portfolioToken.checkState(2, 2, [2, 2]);
+
+    await portfolioToken.addSubRewardsAndDeposit(1, 1, false);
+    await portfolioToken.transfer(alice, bob, 2);
+
+    await portfolioToken.assertBalanceOf(alice, 0.5); // 0 after transfer all amounts to Bob + 0.5 from rewards
+    await portfolioToken.assertBalanceOf(bob, 4.5); // 4 after transfer all amounts from Alice + 0.5 from rewards
+  })
+
+  it("Withdraw and transfer with denied deposit", async () => {
+    await portfolioToken.deposit(alice, 2);
+    await portfolioToken.getPool(1).stopDeposit();
+    await portfolioToken.addSubRewardsAndDeposit(1, 1, false);
+    await portfolioToken.transfer(alice, bob, 1);
+    await portfolioToken.addSubRewardsAndDeposit(1, 1, false);
+    await portfolioToken.assertedSubWithdraw(alice, 1, 1);
+
+    await expect(portfolioToken.deposit(alice, 1)).revertedWith("Pool: deposit prohibited");
+  })
+
+  it("Deposit and transfer with denied withdraw", async () => {
+    await portfolioToken.getPool(1).stopWithdraw();
+    await portfolioToken.deposit(alice, 2);
+    await portfolioToken.addSubRewardsAndDeposit(1, 1, false);
+    await portfolioToken.transfer(alice, bob, 1);
+    await portfolioToken.addSubRewardsAndDeposit(1, 1, false);
+    await expect(portfolioToken.subWithdraw(alice, 1, 1)).revertedWith("Pool: withdraw prohibited");
+  })
+
+  it("SubTransfer after adding rewards", async function () {
+    await portfolioToken.deposit(alice, 1, 1); // Alice 2; Bob 0; Pool1 1; Pool2 1;
+    await portfolioToken.deposit(bob, 1, 1);
+    await portfolioToken.checkState(2, 2, [2, 2]);
+
+    await portfolioToken.addSubRewardsAndDeposit(1, 1, false);
+    await portfolioToken.subTransfer(alice, bob, 1, 1);
+
+    await portfolioToken.assertBalanceOf(alice, 1.5, 0.001);
+    await portfolioToken.assertBalanceOf(bob, 3.5);
+
+    await portfolioToken.assertSubBalanceOf(alice, 1, 0.5, 0.002);
+    await portfolioToken.assertSubBalanceOf(bob, 1, 2.5);
+
+    await portfolioToken.assertSubBalanceOf(alice, 2, 1);
+    await portfolioToken.assertSubBalanceOf(bob, 2, 1);
+  })
 
   it("Simple balance test with different amount", async () => {
     await portfolioToken.deposit(alice, 1, 1); // Alice 2; Bob 0; Pool1 1; Pool2 1;

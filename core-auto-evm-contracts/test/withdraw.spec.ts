@@ -18,106 +18,106 @@ describe('deposit', () => {
     await portfolioToken.activatePools(1, 2);
   });
 
-  it('Token balance < 0.001, pending rewards = 0', async () => {
+  it('Token balance < 1, pending rewards = 0', async () => {
     const token = portfolioToken.getToken(2);
     const pool = portfolioToken.getPool(2)
     await portfolioToken.depositOnePool(alice, 1000, 2);
-    await portfolioToken.transferToken(token, portfolioToken.contract, 0.0009);
+    await portfolioToken.transferToken(token, portfolioToken.contract, 0.9);
     await portfolioToken.depositOnePool(bob, 1, 2);
     await portfolioToken.assertTokenBalance(token, pool, 1001);
     await portfolioToken.assertBalanceOf(alice, 1000);
     await portfolioToken.assertBalanceOf(bob, 1);
     await portfolioToken.assertTotalSupply(1001);
     await portfolioToken.assertPendingRewards(2, 0);
-    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.0009);
+    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.9);
   });
 
-  it('Token balance < 0, pending rewards < 0.001', async () => {
+  it('Token balance < 0, pending rewards < 1', async () => {
     const token = portfolioToken.getToken(2);
     const pool = portfolioToken.getPool(2)
     await portfolioToken.depositOnePool(alice, 1000, 2);
-    await portfolioToken.addRewards(2, 0.0009);
+    await portfolioToken.addRewards(2, 0.9);
     await portfolioToken.depositOnePool(bob, 1, 2);
     await portfolioToken.assertTokenBalance(token, pool, 1001);
     await portfolioToken.assertBalanceOf(alice, 1000);
     await portfolioToken.assertBalanceOf(bob, 1);
     await portfolioToken.assertTotalSupply(1001);
     await portfolioToken.assertPendingRewards(2, 0);
-    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.0009);
+    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.9);
   });
 
-  it('Token balance + pending rewards < 0.001', async () => {
+  it('Token balance + pending rewards < 1', async () => {
     const token = portfolioToken.getToken(2);
     const pool = portfolioToken.getPool(2)
     await portfolioToken.depositOnePool(alice, 1000, 2);
-    await portfolioToken.addRewards(2, 0.0001);
-    await portfolioToken.transferToken(token, portfolioToken.contract, 0.0001);
+    await portfolioToken.addRewards(2, 0.1);
+    await portfolioToken.transferToken(token, portfolioToken.contract, 0.1);
     await portfolioToken.depositOnePool(bob, 1, 2);
     await portfolioToken.assertTokenBalance(token, pool, 1001);
     await portfolioToken.assertBalanceOf(alice, 1000);
     await portfolioToken.assertBalanceOf(bob, 1);
     await portfolioToken.assertTotalSupply(1001);
     await portfolioToken.assertPendingRewards(2, 0);
-    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.0002);
+    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.2);
   });
 
-  it('Token balance < 0.001, pending rewards < 0.001 but token balance + pending rewards > 0.001', async () => {
+  it('Token balance < 1, pending rewards < 1 but token balance + pending rewards > 1', async () => {
     const token = portfolioToken.getToken(2);
     const pool = portfolioToken.getPool(2)
     await portfolioToken.depositOnePool(alice, 1000, 2);
-    await portfolioToken.addRewards(2, 0.0006);
-    await portfolioToken.transferToken(token, portfolioToken.contract, 0.0006);
+    await portfolioToken.addRewards(2, 0.6);
+    await portfolioToken.transferToken(token, portfolioToken.contract, 0.6);
     await portfolioToken.depositOnePool(bob, 1, 2);
-    await portfolioToken.assertTokenBalance(token, pool, 1001.0012);
-    await portfolioToken.assertBalanceOf(alice, 1000);
-    await portfolioToken.assertBalanceOf(bob, 1);
-    await portfolioToken.assertTotalSupply(1001);
+    await portfolioToken.assertTokenBalance(token, pool, 1002.2);
+    await portfolioToken.assertBalanceOf(alice, 1001.2);
+    await portfolioToken.assertBalanceOf(bob, 1, 0.002);
+    await portfolioToken.assertTotalSupply(1002.2);
     await portfolioToken.assertPendingRewards(2, 0);
     await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0);
   });
 
-  it('Token balance < 0.001, pending rewards < 0.001 but token balance + pending rewards = 0.001', async () => {
+  it('Token balance < 1, pending rewards < 1 but token balance + pending rewards = 1', async () => {
     const token = portfolioToken.getToken(2);
     const pool = portfolioToken.getPool(2)
     await portfolioToken.depositOnePool(alice, 1000, 2);
     await portfolioToken.unbalancePool(2, 1500);
-    await portfolioToken.addRewards(2, 0.000500);
-    await portfolioToken.transferToken(token, portfolioToken.contract, 0.000500);
+    await portfolioToken.addRewards(2, 0.5);
+    await portfolioToken.transferToken(token, portfolioToken.contract, 0.5);
     await portfolioToken.depositOnePool(bob, 1, 2);
-    await portfolioToken.assertTokenBalance(token, pool, 1001.001);
-    await portfolioToken.assertBalanceOf(alice, 1000.022);
+    await portfolioToken.assertTokenBalance(token, pool, 1002);
+    await portfolioToken.assertBalanceOf(alice, 1000.396);
     await portfolioToken.assertBalanceOf(bob, 0.373);
-    await portfolioToken.assertTotalSupply(1000.396);
+    await portfolioToken.assertTotalSupply(1000.77);
     await portfolioToken.assertPendingRewards(2, 0);
     await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0);
   });
 
-  it('Token balance > 0.001', async () => {
+  it('Token balance > 1', async () => {
     const token = portfolioToken.getToken(2);
     const pool = portfolioToken.getPool(2)
     await portfolioToken.depositOnePool(alice, 1000, 2);
-    await portfolioToken.transferToken(token, portfolioToken.contract, 0.01);
+    await portfolioToken.transferToken(token, portfolioToken.contract, 1.01);
     const result = await portfolioToken.depositOnePool(bob, 1, 2);
     await result.expectEmitVirtualTransferEvent(ZeroAddress, bob, 1) // minted exact amount
-    await portfolioToken.assertTokenBalance(token, pool, 1001.01);
-    await portfolioToken.assertBalanceOf(alice, 1000.01);
+    await portfolioToken.assertTokenBalance(token, pool, 1002.01);
+    await portfolioToken.assertBalanceOf(alice, 1001.01);
     await portfolioToken.assertBalanceOf(bob, 0.999); // bob amount a little less than deposit
-    await portfolioToken.assertTotalSupply(1001.01);
+    await portfolioToken.assertTotalSupply(1002.01);
     await portfolioToken.assertPendingRewards(2, 0);
     await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0);
   });
 
-  it('Pending rewards > 0.001', async () => {
+  it('Pending rewards > 1', async () => {
     const token = portfolioToken.getToken(2);
     const pool = portfolioToken.getPool(2)
     await portfolioToken.depositOnePool(alice, 1000, 2);
-    await portfolioToken.addRewards(2, 0.01);
+    await portfolioToken.addRewards(2, 1.01);
     const result = await portfolioToken.depositOnePool(bob, 1, 2);
     await result.expectEmitVirtualTransferEvent(ZeroAddress, bob, 1) // minted exact amount
-    await portfolioToken.assertTokenBalance(token, pool, 1001.01);
-    await portfolioToken.assertBalanceOf(alice, 1000.01);
+    await portfolioToken.assertTokenBalance(token, pool, 1002.01);
+    await portfolioToken.assertBalanceOf(alice, 1001.01);
     await portfolioToken.assertBalanceOf(bob, 0.999); // bob amount a little less than deposit
-    await portfolioToken.assertTotalSupply(1001.01);
+    await portfolioToken.assertTotalSupply(1002.01);
     await portfolioToken.assertPendingRewards(2, 0);
     await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0);
   });
@@ -207,7 +207,6 @@ describe('withdraw', () => {
         await portfolioToken.assertTotalSupply(Big(totalSupplyBefore).sub(withdrawAmount).toFixed(), 0.002);
         const realTotalSupplyAfter = await portfolioToken.realTotalSupply();
         expect(Big(realTotalSupplyBefore).sub(realTotalSupplyAfter).toNumber()).lt(+withdrawAmount);
-        console.log(bobBalanceBefore);
         const bobBalanceAfter = await portfolioToken.balanceOf(bob);
         expect(+bobBalanceAfter).gte(+bobBalanceBefore);
         await portfolioToken.assertBalanceOf(bob, bobBalanceBefore, 0.004)
@@ -237,9 +236,9 @@ describe('withdraw', () => {
         }
       })
 
-      it(`Token balance < 0.001, pending rewards = 0`, async () => {
+      it(`Token balance < 1, pending rewards = 0`, async () => {
         for (const index of firstPoolIndexes(3)) { // pool 4 has 3 decimals
-          await portfolioToken.transferToken(portfolioToken.getToken(index), portfolioToken.contract, 0.0009);
+          await portfolioToken.transferToken(portfolioToken.getToken(index), portfolioToken.contract, 0.9);
         }
 
         const balance = await portfolioToken.balanceOf(alice);
@@ -258,15 +257,15 @@ describe('withdraw', () => {
 
         for (const index of firstPoolIndexes(state.length)) {
           if (index !== 4) { // pool 4 has 3 decimals
-            await portfolioToken.assertTokenBalance(portfolioToken.getToken(index), portfolioToken.contract, 0.0009) // stay the same
+            await portfolioToken.assertTokenBalance(portfolioToken.getToken(index), portfolioToken.contract, 0.9) // stay the same
           }
           await portfolioToken.assertPendingRewards(index, 0);
         }
       });
 
-      it(`Token balance < 0, pending rewards < 0.001`, async () => {
+      it(`Token balance < 0, pending rewards < 1`, async () => {
         for (const index of firstPoolIndexes(3)) {  // pool 4 has 3 decimals
-          await portfolioToken.addRewards(index, 0.0009);
+          await portfolioToken.addRewards(index, 0.9);
         }
 
         const balance = await portfolioToken.balanceOf(alice);
@@ -285,16 +284,16 @@ describe('withdraw', () => {
 
         for (const index of firstPoolIndexes(state.length)) {
           if (index !== 4) { // pool 4 has 3 decimals
-            await portfolioToken.assertTokenBalance(portfolioToken.getToken(index), portfolioToken.contract, 0.0009, 0.0000011) // increased by pending rewards, approximate for pool with decimal 6
+            await portfolioToken.assertTokenBalance(portfolioToken.getToken(index), portfolioToken.contract, 0.9, 0.000002) // increased by pending rewards, approximate for pool with decimal 6
           }
           await portfolioToken.assertPendingRewards(index, 0);
         }
       });
 
-      it(`Token balance + pending rewards < 0.001`, async () => {
+      it(`Token balance + pending rewards < 1`, async () => {
         for (const index of firstPoolIndexes(3)) {  // pool 4 has 3 decimals
-          await portfolioToken.addRewards(index, 0.0001);
-          await portfolioToken.transferToken(portfolioToken.getToken(index), portfolioToken.contract, 0.0001);
+          await portfolioToken.addRewards(index, 0.1);
+          await portfolioToken.transferToken(portfolioToken.getToken(index), portfolioToken.contract, 0.1);
         }
 
         const balance = await portfolioToken.balanceOf(alice);
@@ -314,16 +313,16 @@ describe('withdraw', () => {
 
         for (const index of firstPoolIndexes(state.length)) {
           if (index !== 4) { // pool 4 has 3 decimals
-            await portfolioToken.assertTokenBalance(portfolioToken.getToken(index), portfolioToken.contract, 0.0002, 0.0000011) // increased by pending rewards, approximate for pool with decimal 6
+            await portfolioToken.assertTokenBalance(portfolioToken.getToken(index), portfolioToken.contract, 0.2, 0.0000011) // increased by pending rewards, approximate for pool with decimal 6
           }
           await portfolioToken.assertPendingRewards(index, 0);
         }
       });
 
-      it(`Token balance < 0.001, pending rewards < 0.001 but token balance + pending rewards > 0.001`, async () => {
-        for (const index of firstPoolIndexes(3)) {  // pool 4 has 3 decimals
-          await portfolioToken.addRewards(index, 0.0009);
-          await portfolioToken.transferToken(portfolioToken.getToken(index), portfolioToken.contract, 0.0009);
+      it(`Token balance < 1, pending rewards < 1 but token balance + pending rewards > 1`, async () => {
+        for (const index of firstPoolIndexes(4)) {
+          await portfolioToken.addRewards(index, 0.9);
+          await portfolioToken.transferToken(portfolioToken.getToken(index), portfolioToken.contract, 0.9);
         }
 
         const balance = await portfolioToken.balanceOf(alice);
@@ -333,12 +332,12 @@ describe('withdraw', () => {
         const tokenBalanceBefore = await portfolioToken.tokenBalanceOfSum(alice);
         const totalSupplyBefore = await portfolioToken.totalSupply();
         await portfolioToken.withdraw(alice, withdrawAmount);
-        await portfolioToken.assertBalanceOf(alice, Big(balance).sub(withdrawAmount).toFixed());
-        await portfolioToken.assertTotalSupply(Big(totalSupplyBefore).sub(withdrawAmount).toFixed());
+        await portfolioToken.assertBalanceOf(alice, Big(balance).sub(withdrawAmount).toFixed(), state.length * 1.5); // rewords from pools with different balance
+        await portfolioToken.assertTotalSupply(Big(totalSupplyBefore).sub(withdrawAmount).add(1.8 * state.length).toFixed(), 0.002 * state.length);
         const bobBalanceAfter = await portfolioToken.balanceOf(bob);
-        expect(bobBalanceBefore).eq(bobBalanceAfter);
+        expect(+bobBalanceBefore).lt(+bobBalanceAfter);
         const tokenBalanceAfter = await portfolioToken.tokenBalanceOfSum(alice);
-        expect(Big(tokenBalanceAfter).sub(tokenBalanceBefore).toFixed()).eq(Big(withdrawAmount).toFixed());
+        expect(Big(tokenBalanceAfter).sub(tokenBalanceBefore).toNumber()).closeTo(Big(withdrawAmount).toNumber(), 0.0021);
 
         for (const index of firstPoolIndexes(state.length)) {
           await portfolioToken.assertTokenBalance(portfolioToken.getToken(index), portfolioToken.contract, 0)
@@ -346,9 +345,9 @@ describe('withdraw', () => {
         }
       });
 
-      it(`Token balance > 0.001`, async () => {
+      it(`Token balance > 1`, async () => {
         const extraTokenAmount = 10;
-        for (const index of indexes) {  // pool 4 has 3 decimals
+        for (const index of indexes) {
           await portfolioToken.transferToken(portfolioToken.getToken(index), portfolioToken.contract, extraTokenAmount);
         }
 
@@ -379,7 +378,7 @@ describe('withdraw', () => {
         }
       });
 
-      it(`Pending rewards > 0.001`, async () => {
+      it(`Pending rewards > 1`, async () => {
         const pendingRewards = 10;
         for (const index of firstPoolIndexes(state.length)) {
           await portfolioToken.addRewards(index, pendingRewards);
@@ -539,8 +538,8 @@ describe('subWithdraw', () => {
 
   })
 
-  it(`Token balance < 0.001, pending rewards = 0`, async () => {
-    await portfolioToken.transferToken(token, portfolioToken.contract, 0.0009);
+  it(`Token balance < 1, pending rewards = 0`, async () => {
+    await portfolioToken.transferToken(token, portfolioToken.contract, 0.9);
 
     const totalBalance = await portfolioToken.balanceOf(alice);
     const bobBalanceBefore = await portfolioToken.balanceOf(bob);
@@ -560,12 +559,12 @@ describe('subWithdraw', () => {
     await portfolioToken.assertSubBalanceOf(alice, index, sub(initBalance, withdrawAmount));
 
 
-    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.0009) // stay the same
+    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.9) // stay the same
     await portfolioToken.assertPendingRewards(index, 0);
   });
 
-  it(`Token balance < 0, pending rewards < 0.001`, async () => {
-    await portfolioToken.addRewards(index, 0.0009);
+  it(`Token balance < 0, pending rewards < 1`, async () => {
+    await portfolioToken.addRewards(index, 0.9);
 
     const totalBalance = await portfolioToken.balanceOf(alice);
     const bobBalanceBefore = await portfolioToken.balanceOf(bob);
@@ -584,13 +583,13 @@ describe('subWithdraw', () => {
     await portfolioToken.assertBalanceOf(alice, Big(totalBalance).sub(withdrawAmount).toFixed());
     await portfolioToken.assertSubBalanceOf(alice, index, sub(initBalance, withdrawAmount));
 
-    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.0009) // increased by pending rewards
+    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.9) // increased by pending rewards
     await portfolioToken.assertPendingRewards(index, 0);
   });
 
-  it(`Token balance + pending rewards < 0.001`, async () => {
-    await portfolioToken.addRewards(index, 0.0001);
-    await portfolioToken.transferToken(token, portfolioToken.contract, 0.0001);
+  it(`Token balance + pending rewards < 1`, async () => {
+    await portfolioToken.addRewards(index, 0.1);
+    await portfolioToken.transferToken(token, portfolioToken.contract, 0.1);
 
     const totalBalance = await portfolioToken.balanceOf(alice);
     const bobBalanceBefore = await portfolioToken.balanceOf(bob);
@@ -609,13 +608,13 @@ describe('subWithdraw', () => {
     await portfolioToken.assertBalanceOf(alice, Big(totalBalance).sub(withdrawAmount).toFixed());
     await portfolioToken.assertSubBalanceOf(alice, index, sub(initBalance, withdrawAmount));
 
-    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.0002) // increased by pending rewards
+    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.2) // increased by pending rewards
     await portfolioToken.assertPendingRewards(index, 0);
   });
 
-  it(`Token balance < 0.001, pending rewards < 0.001 but token balance + pending rewards > 0.001`, async () => {
-    await portfolioToken.addRewards(index, 0.0009);
-    await portfolioToken.transferToken(token, portfolioToken.contract, 0.0009);
+  it(`Token balance < 1, pending rewards < 1 but token balance + pending rewards > 1`, async () => {
+    await portfolioToken.addRewards(index, 0.9);
+    await portfolioToken.transferToken(token, portfolioToken.contract, 0.9);
     const depositedTokenBalanceBefore = await portfolioToken.getTokenBalance(token, pool);
 
     const totalBalance = await portfolioToken.balanceOf(alice);
@@ -626,22 +625,22 @@ describe('subWithdraw', () => {
     const totalSupplyBefore = await portfolioToken.totalSupply();
     await portfolioToken.subWithdraw(alice, withdrawAmount, index);
     await portfolioToken.assertSubBalanceOf(alice, otherIndex, anotherInitBalance);
-    await portfolioToken.assertTotalSupply(Big(totalSupplyBefore).sub(withdrawAmount).toFixed());
-    await portfolioToken.assertBalanceOf(bob, bobBalanceBefore);
-    await portfolioToken.assertTokenBalance(pool, portfolioToken.contract, Big(poolDepositBefore).sub(withdrawAmount).toFixed());
+    await portfolioToken.assertTotalSupply(Big(totalSupplyBefore).sub(withdrawAmount).add(1.8).toFixed());
+    await portfolioToken.assertBalanceOf(bob, add(bobBalanceBefore, 0.9));
+    await portfolioToken.assertTokenBalance(pool, portfolioToken.contract, Big(poolDepositBefore).sub(withdrawAmount).add(1.8).toFixed());
     await portfolioToken.assertTokenBalance(anotherPool, portfolioToken.contract, anotherPoolDepositBefore)
     const tokenBalanceAfter = await portfolioToken.getTokenBalance(token, alice);
     expect(Big(tokenBalanceAfter).sub(tokenBalanceBefore).toFixed()).eq(Big(withdrawAmount).toFixed());
-    await portfolioToken.assertBalanceOf(alice, Big(totalBalance).sub(withdrawAmount).toFixed());
-    await portfolioToken.assertSubBalanceOf(alice, index, sub(initBalance, withdrawAmount));
+    await portfolioToken.assertBalanceOf(alice, Big(totalBalance).sub(withdrawAmount).add(0.9).toFixed(), 0.0011);
+    await portfolioToken.assertSubBalanceOf(alice, index, add(sub(initBalance, withdrawAmount), 0.9), 0.0011);
 
     const depositedTokenBalanceAfter = await portfolioToken.getTokenBalance(token, pool);
-    expect(Big(depositedTokenBalanceBefore).sub(depositedTokenBalanceAfter).toNumber()).closeTo(Big(withdrawAmount).toNumber(), 0.001);
+    expect(Big(depositedTokenBalanceBefore).sub(depositedTokenBalanceAfter).toNumber()).closeTo(Big(withdrawAmount).sub(0.9).toNumber(), 0.001);
     await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0)
     await portfolioToken.assertPendingRewards(index, 0);
   });
 
-  it(`Token balance > 0.001`, async () => {
+  it(`Token balance > 1`, async () => {
     const extraTokenAmount = 10;
     await portfolioToken.transferToken(token, portfolioToken.contract, extraTokenAmount);
     const depositedTokenBalanceBefore = await portfolioToken.getTokenBalance(token, pool);
@@ -670,7 +669,7 @@ describe('subWithdraw', () => {
     await portfolioToken.assertPendingRewards(index, 0);
   });
 
-  it(`Pending rewards > 0.001`, async () => {
+  it(`Pending rewards > 1`, async () => {
     const pendingRewards = 10;
     await portfolioToken.addRewards(index, pendingRewards);
 
@@ -749,8 +748,8 @@ describe('subDepositRewards', () => {
     await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0);
   });
 
-  it(`Token balance < 0.001, pending rewards = 0`, async () => {
-    await portfolioToken.transferToken(token, portfolioToken.contract, 0.0009);
+  it(`Token balance < 1, pending rewards = 0`, async () => {
+    await portfolioToken.transferToken(token, portfolioToken.contract, 0.9);
 
     const poolDepositBefore = await portfolioToken.getTokenBalance(pool, portfolioToken.contract);
     const poolStableBalanceBefore = await portfolioToken.getTokenBalance(token, pool);
@@ -764,11 +763,11 @@ describe('subDepositRewards', () => {
     await portfolioToken.assertTotalSupply(totalSupplyBefore);
     await portfolioToken.assertBalanceOf(alice, aliceBalanceBefore);
     await portfolioToken.assertPendingRewards(2, 0);
-    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.0009);
+    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.9);
   });
 
-  it(`Token balance < 0, pending rewards < 0.001`, async () => {
-    await portfolioToken.addRewards(2, 0.0009);
+  it(`Token balance < 0, pending rewards < 1`, async () => {
+    await portfolioToken.addRewards(2, 0.9);
 
     const poolDepositBefore = await portfolioToken.getTokenBalance(pool, portfolioToken.contract);
     const poolStableBalanceBefore = await portfolioToken.getTokenBalance(token, pool);
@@ -777,17 +776,17 @@ describe('subDepositRewards', () => {
     const aliceBalanceBefore = await portfolioToken.balanceOf(alice);
     await portfolioToken.subDepositRewards(2);
     await portfolioToken.assertTokenBalance(pool, portfolioToken.contract, poolDepositBefore);
-    await portfolioToken.assertTokenBalance(token, pool, sub(poolStableBalanceBefore, 0.0009)); // rewards from pool withdrawn by portfolioTokenContract but not deposited
+    await portfolioToken.assertTokenBalance(token, pool, sub(poolStableBalanceBefore, 0.9)); // rewards from pool withdrawn by portfolioTokenContract but not deposited
     await portfolioToken.assertTokenBalance(anotherPool, portfolioToken.contract, anotherPoolDepositBefore);
     await portfolioToken.assertTotalSupply(totalSupplyBefore);
     await portfolioToken.assertBalanceOf(alice, aliceBalanceBefore);
     await portfolioToken.assertPendingRewards(2, 0);
-    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.0009);
+    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.9);
   });
 
-  it(`Token balance + pending rewards < 0.001`, async () => {
-    await portfolioToken.transferToken(token, portfolioToken.contract, 0.0002);
-    await portfolioToken.addRewards(2, 0.0002);
+  it(`Token balance + pending rewards < 1`, async () => {
+    await portfolioToken.transferToken(token, portfolioToken.contract, 0.2);
+    await portfolioToken.addRewards(2, 0.2);
 
     const poolDepositBefore = await portfolioToken.getTokenBalance(pool, portfolioToken.contract);
     const poolStableBalanceBefore = await portfolioToken.getTokenBalance(token, pool);
@@ -796,34 +795,36 @@ describe('subDepositRewards', () => {
     const aliceBalanceBefore = await portfolioToken.balanceOf(alice);
     await portfolioToken.subDepositRewards(2);
     await portfolioToken.assertTokenBalance(pool, portfolioToken.contract, poolDepositBefore);
-    await portfolioToken.assertTokenBalance(token, pool, sub(poolStableBalanceBefore, 0.0002)); // rewards from pool withdrawn by portfolioTokenContract but not deposited
+    await portfolioToken.assertTokenBalance(token, pool, sub(poolStableBalanceBefore, 0.2)); // rewards from pool withdrawn by portfolioTokenContract but not deposited
     await portfolioToken.assertTokenBalance(anotherPool, portfolioToken.contract, anotherPoolDepositBefore);
     await portfolioToken.assertTotalSupply(totalSupplyBefore);
     await portfolioToken.assertBalanceOf(alice, aliceBalanceBefore);
     await portfolioToken.assertPendingRewards(2, 0);
-    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.0004);
+    await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0.4);
   });
 
-  it(`Token balance < 0.001, pending rewards < 0.001 but token balance + pending rewards > 0.001`, async () => {
-    await portfolioToken.transferToken(token, portfolioToken.contract, 0.0006);
-    await portfolioToken.addRewards(2, 0.0006);
+  it(`Token balance < 1, pending rewards < 1 but token balance + pending rewards > 1`, async () => {
+    await portfolioToken.transferToken(token, portfolioToken.contract, 0.6);
+    await portfolioToken.addRewards(2, 0.6);
 
     const poolDepositBefore = await portfolioToken.getTokenBalance(pool, portfolioToken.contract);
     const poolStableBalanceBefore = await portfolioToken.getTokenBalance(token, pool);
     const anotherPoolDepositBefore = await portfolioToken.getTokenBalance(anotherPool, portfolioToken.contract);
     const totalSupplyBefore = await portfolioToken.totalSupply();
     const aliceBalanceBefore = await portfolioToken.balanceOf(alice);
+    const bobBalanceBefore = await portfolioToken.balanceOf(bob);
     await portfolioToken.subDepositRewards(2);
-    await portfolioToken.assertTokenBalance(pool, portfolioToken.contract, poolDepositBefore);
-    await portfolioToken.assertTokenBalance(token, pool, add(poolStableBalanceBefore, 0.0006)); //rewards from pool withdrawn and return back, so only token
+    await portfolioToken.assertTokenBalance(pool, portfolioToken.contract, add(poolDepositBefore, 1.2));
+    await portfolioToken.assertTokenBalance(token, pool, add(poolStableBalanceBefore, 0.6)); //rewards from pool withdrawn and return back, so only token
     await portfolioToken.assertTokenBalance(anotherPool, portfolioToken.contract, anotherPoolDepositBefore);
-    await portfolioToken.assertTotalSupply(totalSupplyBefore);
-    await portfolioToken.assertBalanceOf(alice, aliceBalanceBefore);
+    await portfolioToken.assertTotalSupply(add(totalSupplyBefore, 1.2));
+    await portfolioToken.assertBalanceOf(alice, add(aliceBalanceBefore, 0.6));
+    await portfolioToken.assertBalanceOf(bob, add(bobBalanceBefore, 0.6));
     await portfolioToken.assertPendingRewards(2, 0);
     await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0);
   });
 
-  it(`Token balance > 0.001`, async () => {
+  it(`Token balance > 1`, async () => {
     await portfolioToken.transferToken(token, portfolioToken.contract, 10);
 
     const poolDepositBefore = await portfolioToken.getTokenBalance(pool, portfolioToken.contract);
@@ -841,7 +842,7 @@ describe('subDepositRewards', () => {
     await portfolioToken.assertTokenBalance(token, portfolioToken.contract, 0);
   });
 
-  it(`Pending rewards > 0.001`, async () => {
+  it(`Pending rewards > 1`, async () => {
     await portfolioToken.addRewards(2, 10);
 
     const poolDepositBefore = await portfolioToken.getTokenBalance(pool, portfolioToken.contract);

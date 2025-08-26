@@ -47,4 +47,8 @@ contract VirtualMultiTokenWithMint is VirtualMultiToken {
     function realSubTotalSupply(uint index) external view returns (uint) {
         return MultiToken.subTotalSupply(index);
     }
+
+    function subDepositRewards(uint index) public override {}
+
+    function depositRewards() public override {}
 }

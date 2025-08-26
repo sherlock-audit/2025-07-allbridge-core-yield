@@ -17,4 +17,6 @@ interface IPool {
     function deposit(uint amount) external;
     function claimRewards() external;
     function withdraw(uint amountLp) external;
+    function canDeposit() external view returns (uint);
+    function canWithdraw() external view returns (uint);
 }

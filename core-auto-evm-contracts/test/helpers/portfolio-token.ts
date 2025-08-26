@@ -216,19 +216,19 @@ export class PortfolioToken {
         continue;
       }
       const precision = PortfolioToken.getPrecision((i + 1) as Index);
-      const result = await this.portfolioToken.connect(user).deposit(floatToInt(amounts[i] || "0", precision), i);
+      const result = await this.portfolioToken.connect(user).deposit(floatToInt(amounts[i] || "0", precision), i, 0);
       results.push(this.wrapResult(result));
     }
 
     return results;
   }
 
-  async depositOnePool(user: User, amount: FloatNumber, index: Index) {
+  async depositOnePool(user: User, amount: FloatNumber, index: Index, minVirtualAmount: FloatNumber = 0) {
     log(
       `${this.actors.getName(user)} deposit ${amount} to pool ${index}`
     );
     const precision = PortfolioToken.getPrecision(index);
-    const result = await this.portfolioToken.connect(user).deposit(floatToInt(amount, precision), index - 1);
+    const result = await this.portfolioToken.connect(user).deposit(floatToInt(amount, precision), index - 1, floatToSystemInt(minVirtualAmount));
     return this.wrapResult(result);
   }
 
@@ -468,11 +468,11 @@ export class PortfolioToken {
     return sum.toFixed();
   }
 
-  async assertSubBalanceOf(user: User, index: Index, expectedSubBalance: FloatNumber, delat = 0) {
-    if (delat === 0) {
+  async assertSubBalanceOf(user: User, index: Index, expectedSubBalance: FloatNumber, delta = 0) {
+    if (delta === 0) {
       expect(systemIntToFloat(await this.portfolioToken.subBalanceOf(user, index - 1))).to.equal(normalizeFloatNumber(expectedSubBalance));
     } else {
-      expect(+systemIntToFloat(await this.portfolioToken.subBalanceOf(user, index - 1))).to.approximately(+normalizeFloatNumber(expectedSubBalance), delat);
+      expect(+systemIntToFloat(await this.portfolioToken.subBalanceOf(user, index - 1))).to.approximately(+normalizeFloatNumber(expectedSubBalance), delta);
     }
   }
 
