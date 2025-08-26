@@ -20,6 +20,17 @@ abstract contract VirtualMultiToken is MultiToken {
     function _totalVirtualAmount(uint index) internal view virtual returns (uint);
 
     /**
+     * @dev Abstract function to claim and deposit rewards form all pools
+     */
+    function depositRewards() public virtual;
+
+    /**
+     * @dev Abstract function to claim and deposit rewards of a specified pool
+     * @param index The index of the pool for which rewards are to be deposited.
+     */
+    function subDepositRewards(uint index) public virtual;
+
+    /**
      * @dev This internal function transfers an amount of tokens from one address to another.
      * @param from The address to transfer tokens from.
      * @param to The address to transfer tokens to.
@@ -29,6 +40,7 @@ abstract contract VirtualMultiToken is MultiToken {
         require(to != address(0), "ERC20: transfer to the zero address");
         require(virtualAmount > 0, "ERC20: transfer zero amount");
 
+        depositRewards();
         uint totalVirtualBalance = balanceOf(from);
 
         require(totalVirtualBalance >= virtualAmount, "ERC20: transfer amount exceeds balance");
@@ -103,6 +115,7 @@ abstract contract VirtualMultiToken is MultiToken {
         require(to != address(0), "ERC20: transfer to the zero address");
         require(virtualAmount > 0, "ERC20: transfer zero amount");
 
+        subDepositRewards(index);
         MultiToken._singleTransfer(from, to, _fromVirtual(virtualAmount, index), index);
 
         uint[NUM_TOKENS] memory virtualAmounts;
