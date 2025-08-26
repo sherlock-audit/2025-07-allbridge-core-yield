@@ -15,6 +15,7 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
 
     uint private constant SYSTEM_PRECISION = 3;
     uint[NUM_TOKENS] private tokensPerSystem;
+    uint private constant MIN_DEPOSIT_SP = 1000;
 
     IPool[NUM_TOKENS] public pools;
     IERC20[NUM_TOKENS] public tokens;
@@ -29,8 +30,9 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
      * @dev Deposit tokens into the pool.
      * @param amount The amount of tokens to deposit.
      * @param index The index of the pool to deposit to.
+     * @param minVirtualAmount Minimal amount of virtual tokens to be received by the user
      */
-    function deposit(uint amount, uint index) external {
+    function deposit(uint amount, uint index, uint minVirtualAmount) external {
         require(index < NUM_TOKENS, "Index out of range");
         IERC20 token = tokens[index];
         IPool pool = pools[index];
@@ -45,6 +47,7 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
         pool.deposit(amount);
         uint virtualAmountAfter = pool.balanceOf(address(this));
         uint virtualAmountDiff = virtualAmountAfter - virtualAmountBefore;
+        require(virtualAmountDiff >= minVirtualAmount, "Slippage");
         _mintAfterTotalChanged(msg.sender, virtualAmountDiff, index);
         uint[NUM_TOKENS] memory virtualAmounts;
         virtualAmounts[index] = virtualAmountDiff;
@@ -128,7 +131,7 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
     /**
      * @dev Claim and deposit rewards form all pools
      */
-    function depositRewards() public {
+    function depositRewards() public override {
         subDepositRewards(0);
         subDepositRewards(1);
         subDepositRewards(2);
@@ -139,10 +142,10 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
      * @dev Claim and deposit rewards of a specified pool
      * @param index The index of the pool for which rewards are to be deposited.
      */
-    function subDepositRewards(uint index) public {
+    function subDepositRewards(uint index) public override {
         require(index < NUM_TOKENS, "Index out of range");
         IPool pool = pools[index];
-        if (address(pool) == address(0)) {
+        if (address(pool) == address(0) || pool.canDeposit() != 1) {
             return;
         }
 
@@ -155,7 +158,7 @@ contract PortfolioToken is Ownable, VirtualMultiToken {
         pool.claimRewards();
         // deposit all contract token balance
         uint balance = token.balanceOf(address(this));
-        if ((balance / tokensPerSystem[index]) > 0) {
+        if ((balance / tokensPerSystem[index]) >= MIN_DEPOSIT_SP) {
             pool.deposit(balance);
             emit DepositedRewards(balance, address(token));
         }
